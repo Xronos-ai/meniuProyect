@@ -7,7 +7,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 //screens
 import HomeScreen from "./screens/HomeScreen";
-import CalendarScreen from "./screens/CalendarScreen";
+import CalendarStack from "./screens/CalendarStack";
 import ProvisionsScreen from "./screens/ProvisionsScreen";
 
 const Tab = createBottomTabNavigator();
@@ -32,8 +32,8 @@ function MyTabs(){
                 }}
             />
             <Tab.Screen 
-                name="Calendar" 
-                component={CalendarScreen} 
+                name="Calendario Semanal" 
+                component={CalendarStack} 
                 options={{
                     tabBarLabel: 'Calendario',
                     tabBarIcon: ({color, size}) => (
