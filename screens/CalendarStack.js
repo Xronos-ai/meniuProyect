@@ -12,17 +12,17 @@ export default function CalendarStack() {
       <Stack.Screen 
         name="CalendarScreen" 
         component={CalendarScreen} 
-        options={{ title: 'Calendario semanal'}}
+        options={{ title: 'Calendario Semanal'}}
       />
       <Stack.Screen 
         name="Options" 
         component={OptionsScreen} 
-        options={{ title: 'Elegir platillo'}}
+        options={{ title: 'Elegir Platillo'}}
       />
       <Stack.Screen 
         name="Info" 
         component={InfoScreen} 
-        options={{ title: 'Información del platillo'}}
+        options={{ title: 'Información del Platillo'}}
       />
     </Stack.Navigator>
   );
