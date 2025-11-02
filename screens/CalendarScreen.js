@@ -1,131 +1,91 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import { getPlan, normalizeDayLabel } from '../utils/planStorage';
 
 export default function CalendarScreen({ navigation }) {
-  const days = ['Lunes 😫', 'Martes 😐', 'Miércoles ☺️', 'Jueves 😄', 'Viernes 🤩', 'Sábado 🤪', 'Domingo 😔'];
-  const [currentDayIndex, setCurrentDayIndex] = useState(0); // 0 = Lunes
+  const days = ['Lunes 😫','Martes 😐','Miércoles ☺️','Jueves 😄','Viernes 🤩','Sábado 🤪','Domingo 😔'];
+  const [currentDayIndex, setCurrentDayIndex] = useState(0);
+  const [plan, setPlan] = useState({});
+
+  useEffect(() => {
+    const today = new Date().getDay(); // 0=Dom,1=Lun,...6=Sab
+    const map = { 0: 6, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5 };
+    setCurrentDayIndex(map[today] ?? 0);
+  }, []);
+
+  const loadPlan = useCallback(async () => {
+    const p = await getPlan();
+    setPlan(p);
+  }, []);
+
+  useFocusEffect(useCallback(() => { loadPlan(); }, [loadPlan]));
+  useEffect(() => { loadPlan(); }, [loadPlan]);
 
   const currentDay = days[currentDayIndex];
-
-  const goToPreviousDay = () => {
-    if (currentDayIndex > 0) {
-      setCurrentDayIndex(currentDayIndex - 1);
-    }
-  };
-
-  const goToNextDay = () => {
-    if (currentDayIndex < days.length - 1) {
-      setCurrentDayIndex(currentDayIndex + 1);
-    }
-  };
+  const currentDayKey = normalizeDayLabel(currentDay);
+  const meals = ['Desayuno', 'Almuerzo', 'Cena'];
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
+        <Text style={styles.title}>Calendario Semanal</Text>
 
-        {/* Encabezado con día */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={goToPreviousDay}
-            disabled={currentDayIndex === 0}
-          >
-            <MaterialCommunityIcons
-              name="chevron-left"
-              size={36}
-              color={currentDayIndex === 0 ? '#A0A0A0' : '#0071CE'}
-            />
+        <View style={styles.dayHeader}>
+          <TouchableOpacity onPress={() => setCurrentDayIndex((prev) => (prev > 0 ? prev - 1 : days.length - 1))}>
+            <MaterialCommunityIcons name="chevron-left" size={28} color="#0071CE" />
           </TouchableOpacity>
-
-          <Text style={styles.headerText}>{currentDay}</Text>
-
-          <TouchableOpacity
-            onPress={goToNextDay}
-            disabled={currentDayIndex === days.length - 1}
-          >
-            <MaterialCommunityIcons
-              name="chevron-right"
-              size={36}
-              color={currentDayIndex === days.length - 1 ? '#A0A0A0' : '#0071CE'}
-            />
+          <Text style={styles.dayText}>{currentDay}</Text>
+          <TouchableOpacity onPress={() => setCurrentDayIndex((prev) => (prev < days.length - 1 ? prev + 1 : 0))}>
+            <MaterialCommunityIcons name="chevron-right" size={28} color="#0071CE" />
           </TouchableOpacity>
         </View>
 
-        {/* Contenido del día actual */}
-        <ScrollView contentContainerStyle={styles.scroll}>
-          <Text style={styles.subtitle}>Selecciona una comida para agregar:</Text>
+        <Text style={styles.subtitle}>Selecciona una comida para agregar:</Text>
 
-          {['Desayuno', 'Almuerzo', 'Cena'].map((meal, i) => (
-            <TouchableOpacity
-              key={i}
-              style={styles.mealButton}
-              onPress={() => navigation.navigate('Options', { meal, day: currentDay })}
-            >
-              <Text style={styles.mealText}>+ {meal}</Text>
-            </TouchableOpacity>
+        <ScrollView contentContainerStyle={styles.scroll}>
+          {meals.map((meal) => (
+            <View key={meal} style={{ marginBottom: 10 }}>
+              <TouchableOpacity
+                style={styles.mealButton}
+                onPress={() => navigation.navigate('Options', { meal, day: currentDay })}
+              >
+                <Text style={styles.mealText}>+ {meal}</Text>
+              </TouchableOpacity>
+              {/* <- Ya no mostramos la fila “planificada” debajo del botón */}
+            </View>
           ))}
         </ScrollView>
-
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F5F7FA',
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 10,
-  },
-  scroll: {
-    paddingBottom: 40,
-  },
-  header: {
+  safeArea: { flex: 1, backgroundColor: '#f8f9fa' },
+  container: { flex: 1, padding: 16 },
+  title: { fontSize: 20, fontWeight: '700', textAlign: 'center', marginBottom: 10 },
+  dayHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#fff',
+    paddingVertical: 12,
     borderRadius: 12,
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    marginBottom: 12,
   },
-  headerText: {
-    color: '#0071CE',
-    fontSize: 22,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  subtitle: {
-    color: '#003366',
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
+  dayText: { fontSize: 22, fontWeight: '800', color: '#0b5cab' },
+  subtitle: { marginBottom: 12, color: '#333', textAlign: 'center' },
+  scroll: { paddingBottom: 24 },
   mealButton: {
-    backgroundColor: '#0071CE',
-    borderRadius: 10,
+    backgroundColor: '#0b5cab',
     paddingVertical: 14,
-    marginVertical: 6,
-    shadowColor: '#0071CE',
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 2 },
+    borderRadius: 12,
+    alignItems: 'center',
   },
-  mealText: {
-    color: '#FFD200',
-    fontSize: 18,
-    textAlign: 'center',
-    fontWeight: '600',
-  },
+  mealText: { color: '#ffd200', fontWeight: '700', fontSize: 16 },
 });
+

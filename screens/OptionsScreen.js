@@ -3,9 +3,9 @@ import { View, Text, TouchableOpacity, StyleSheet, TextInput, FlatList } from 'r
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const dishes = [
-  { id: '1', name: 'Papas Fritas', time: '15 min' },
-  { id: '2', name: 'Ensalada César', time: '10 min' },
-  { id: '3', name: 'Pollo al Horno', time: '45 min' },
+  { id: '1', name: 'Papas Fritas', time: '15 min', image: require('../assets/dishes/papas_fritas.jpg') },
+  { id: '2', name: 'Ensalada César', time: '10 min', image: require('../assets/dishes/Ensalada_cesar.jpg') },
+  { id: '3', name: 'Pollo al Horno', time: '45 min', image: require('../assets/dishes/pollo_al_horno.jpg') },
 ];
 
 export default function OptionsScreen({ navigation, route }) {

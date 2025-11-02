@@ -1,28 +1,44 @@
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { getPlan } from '../utils/planStorage';
 
-export default function HomeScreen({ navigation, route }) {
-  const todayMeal = route?.params?.todayMeal || null; // recibe el platillo desde CalendarScreen
+export default function HomeScreen({ navigation }) {
+  const [todayMeals, setTodayMeals] = useState(null);
+
+  const loadToday = useCallback(async () => {
+    const plan = await getPlan();
+    const dayNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+    const today = dayNames[new Date().getDay()];
+    setTodayMeals(plan[today] || null);
+  }, []);
+
+  useEffect(() => { loadToday(); }, [loadToday]);
+  useFocusEffect(useCallback(() => { loadToday(); }, [loadToday]));
 
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.title}>¡Bienvenido a tu planificador de comidas! 🗓️ </Text>
+        <Text style={styles.title}>¡Bienvenido a tu planificador de comidas! 🗓️</Text>
 
-        {todayMeal ? (
-          <View style={styles.mealContainer}>
-            <Text style={styles.subtitle}>Hoy toca hacer:</Text>
-            <Text style={styles.mealName}>{todayMeal}</Text>
-          </View>
+        {todayMeals ? (
+          <>
+            <Text style={styles.message}>Para hoy:</Text>
+            {Object.entries(todayMeals).map(([meal, dish]) => (
+              <Text key={meal} style={styles.mealLine}>
+                {meal}: <Text style={styles.mealName}>{dish?.name}</Text>
+              </Text>
+            ))}
+          </>
         ) : (
-          <Text style={styles.subtitle}>
-            No hay platillos asignados para hoy 😋
-          </Text>
+          <Text style={styles.message}>No hay platillos asignados para hoy 😉</Text>
         )}
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('Calendario Semanal')}
+          // Importante: cambiar de Tab usando el nombre REAL del Tab.
+          // Usamos el padre (TabNavigator) para evitar ambigüedad.
+          onPress={() => navigation.getParent()?.navigate('Calendario Semanal')}
         >
           <Text style={styles.buttonText}>Ver calendario</Text>
         </TouchableOpacity>
@@ -32,56 +48,12 @@ export default function HomeScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    width: '100%',
-    maxWidth: 380,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#0054A6',
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#333',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  mealContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  mealName: {
-    fontSize: 20,
-    color: '#FFD200',
-    fontWeight: 'bold',
-  },
-  button: {
-    backgroundColor: '#0054A6',
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-  },
-  buttonText: {
-    color: '#FFD200',
-    fontSize: 18,
-    fontWeight: '600',
-  },
+  container: { flex: 1, backgroundColor: '#f5f6f8', padding: 16, justifyContent: 'center' },
+  card: { backgroundColor: '#fff', borderRadius: 16, padding: 18, elevation: 2 },
+  title: { fontSize: 20, fontWeight: '800', color: '#0b5cab', marginBottom: 8 },
+  message: { color: '#333', marginBottom: 8 },
+  mealLine: { color: '#333', marginBottom: 4, fontWeight: '600' },
+  mealName: { fontWeight: '400' },
+  button: { backgroundColor: '#0b5cab', paddingVertical: 12, borderRadius: 12, marginTop: 12, alignItems: 'center' },
+  buttonText: { color: '#ffd200', fontSize: 16, fontWeight: '700' },
 });

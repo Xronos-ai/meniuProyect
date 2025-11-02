@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Image } from 'react-native';
+import { saveMeal } from '../utils/planStorage'; // ⬅️ NUEVO
 
 export default function InfoScreen({ route, navigation }) {
   const { dish, meal, day } = route.params || {};
@@ -31,7 +33,11 @@ export default function InfoScreen({ route, navigation }) {
       </View>
 
       <View style={styles.imageBox}>
-        <MaterialCommunityIcons name="image-outline" size={140} color="#ccc" />
+        <Image
+          source={dish?.image}
+          style={{ width: '100%', height: 180, borderRadius: 12}}
+          resizeMode="cover"
+        />
       </View>
 
       {/* Datos nutricionales */}
@@ -131,7 +137,14 @@ export default function InfoScreen({ route, navigation }) {
       {/* Botón agregar */}
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => navigation.navigate('Calendar')}
+        onPress={async () => {
+          try {
+            await saveMeal(day, meal, dish);      // guarda en AsyncStorage
+            navigation.navigate('CalendarScreen'); // vuelve al calendario correcto
+          } catch (e) {
+            console.warn('No se pudo guardar el platillo:', e);
+          }
+        }}
       >
         <Text style={styles.addButtonText}>Agregar a {meal} del {day}</Text>
       </TouchableOpacity>
