@@ -9,11 +9,22 @@ export default function CalendarScreen({ navigation }) {
   const days = ['Lunes 😫','Martes 😐','Miércoles ☺️','Jueves 😄','Viernes 🤩','Sábado 🤪','Domingo 😔'];
   const [currentDayIndex, setCurrentDayIndex] = useState(0);
   const [plan, setPlan] = useState({});
+  const [todayText, setTodayText] = useState('');
 
   useEffect(() => {
-    const today = new Date().getDay(); // 0=Dom,1=Lun,...6=Sab
+    const today = new Date();
     const map = { 0: 6, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5 };
-    setCurrentDayIndex(map[today] ?? 0);
+    setCurrentDayIndex(map[today.getDay()] ?? 0);
+
+    // Día y mes en español
+    const dayName = today.toLocaleString('es-ES', { weekday: 'long' });
+    const day = today.getDate();
+    const month = today.toLocaleString('es-ES', { month: 'long' });
+
+    // Capitalizar la primera letra del día
+    const capitalizedDay = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+
+    setTodayText(`Hoy es: ${capitalizedDay} ${day} de ${month}`);
   }, []);
 
   const loadPlan = useCallback(async () => {
@@ -31,6 +42,11 @@ export default function CalendarScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
+
+        {/* Bloque superior con la fecha actual */}
+        <View style={styles.todayBox}>
+          <Text style={styles.todayText}>{todayText}</Text>
+        </View>
 
         <View style={styles.dayHeader}>
           <TouchableOpacity onPress={() => setCurrentDayIndex((prev) => (prev > 0 ? prev - 1 : days.length - 1))}>
@@ -53,7 +69,6 @@ export default function CalendarScreen({ navigation }) {
               >
                 <Text style={styles.mealText}>+ {meal}</Text>
               </TouchableOpacity>
-              {/* <- Ya no mostramos la fila “planificada” debajo del botón */}
             </View>
           ))}
         </ScrollView>
@@ -65,7 +80,20 @@ export default function CalendarScreen({ navigation }) {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#f8f9fa' },
   container: { flex: 1, padding: 16 },
-  title: { fontSize: 20, fontWeight: '700', textAlign: 'center', marginBottom: 10 },
+
+  todayBox: {
+    backgroundColor: '#e9f2ff',
+    padding: 10,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  todayText: {
+    color: '#0b5cab',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+
   dayHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -87,4 +115,3 @@ const styles = StyleSheet.create({
   },
   mealText: { color: '#ffd200', fontWeight: '700', fontSize: 16 },
 });
-

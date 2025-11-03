@@ -1,18 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, FlatList } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, FlatList, Image } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-
-const dishes = [
-  { id: '1', name: 'Papas Fritas', time: '15 min', image: require('../assets/dishes/papas_fritas.jpg') },
-  { id: '2', name: 'Ensalada César', time: '10 min', image: require('../assets/dishes/Ensalada_cesar.jpg') },
-  { id: '3', name: 'Pollo al Horno', time: '45 min', image: require('../assets/dishes/pollo_al_horno.jpg') },
-];
+import { mealsData } from '../database/mealsData'; // ⬅️ Import directo de tus platillos
 
 export default function OptionsScreen({ navigation, route }) {
   const { meal, day } = route.params || {};
 
   const [filterVisible, setFilterVisible] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('Todos');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const filters = ['Favoritos', 'Precio', 'Tiempo', 'Todos'];
 
@@ -20,6 +16,48 @@ export default function OptionsScreen({ navigation, route }) {
     setSelectedFilter(filter);
     setFilterVisible(false);
   };
+
+  // Adaptamos mealsData al formato que se usaba en la lista
+  const dishes = useMemo(() => {
+    return mealsData.map((dish, index) => ({
+      id: dish.id ? String(dish.id) : String(index + 1),
+      name: dish.name,
+      time: dish.time ? parseInt(dish.time) : 0,
+      price: dish.price || 0,
+      favorite: dish.favorite || false,
+      image: dish.image,
+      fullData: dish, // ⬅️ Guardamos toda la info original por si se necesita al navegar
+    }));
+  }, []);
+
+  // Filtrado y ordenamiento
+  const filteredDishes = useMemo(() => {
+    let result = [...dishes];
+
+    // Filtro de búsqueda
+    if (searchQuery.trim() !== '') {
+      result = result.filter((d) =>
+        d.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Filtros adicionales
+    switch (selectedFilter) {
+      case 'Favoritos':
+        result = result.filter((d) => d.favorite);
+        break;
+      case 'Precio':
+        result.sort((a, b) => a.price - b.price);
+        break;
+      case 'Tiempo':
+        result.sort((a, b) => a.time - b.time);
+        break;
+      default:
+        break;
+    }
+
+    return result;
+  }, [dishes, selectedFilter, searchQuery]);
 
   return (
     <View style={styles.container}>
@@ -30,12 +68,14 @@ export default function OptionsScreen({ navigation, route }) {
         </Text>
       </View>
 
-      {/* Fila de búsqueda y filtro */}
+      {/* Búsqueda y Filtro */}
       <View style={styles.searchRow}>
         <TextInput
           style={styles.search}
           placeholder="Buscar platillos..."
           placeholderTextColor="#666"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
         />
 
         <View style={styles.filterContainer}>
@@ -65,20 +105,28 @@ export default function OptionsScreen({ navigation, route }) {
 
       {/* Lista de platillos */}
       <FlatList
-        data={dishes}
+        data={filteredDishes}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.dishCard}
-            onPress={() => navigation.navigate('Info', { dish: item, meal, day })}
+            onPress={() => navigation.navigate('Info', { dish: item.fullData, meal, day })}
           >
             <View style={styles.dishInfo}>
-              <MaterialCommunityIcons name="silverware-fork-knife" size={36} color="#0071CE" />
+              <Image
+                source={item.image}
+                style={{ width: 60, height: 60, borderRadius: 8, marginRight: 10 }}
+                resizeMode="cover"
+              />
               <View>
                 <Text style={styles.dishName}>{item.name}</Text>
                 <View style={styles.timeRow}>
-                  <MaterialCommunityIcons name="clock-time-three-outline" size={20} color="#555" />
-                  <Text style={styles.dishTime}>{item.time}</Text>
+                  <MaterialCommunityIcons
+                    name="clock-time-three-outline"
+                    size={18}
+                    color="#555"
+                  />
+                  <Text style={styles.dishTime}>{item.time} min</Text>
                 </View>
               </View>
             </View>
@@ -92,6 +140,7 @@ export default function OptionsScreen({ navigation, route }) {
   );
 }
 
+// === ESTILOS (idénticos) ===
 const styles = StyleSheet.create({
   container: {
     flex: 1,

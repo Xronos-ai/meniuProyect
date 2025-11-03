@@ -1,62 +1,54 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { Image } from 'react-native';
-import { saveMeal } from '../utils/planStorage'; // ⬅️ NUEVO
+import { saveMeal } from '../utils/planStorage';
+import { mealsData } from '../database/mealsData'; 
 
 export default function InfoScreen({ route, navigation }) {
-  const { dish, meal, day } = route.params || {};
+  const { dish: selectedDish, meal, day } = route.params || {};
   const [activeTab, setActiveTab] = useState("ingredientes");
   const [portions, setPortions] = useState(1);
 
-  const decreasePortion = () => {
-    setPortions((prev) => (prev > 1 ? prev - 1 : prev));
-  };
+  // Si no llega dish, usa el primero como respaldo
+  const dish = selectedDish || mealsData[0];
 
-  const increasePortion = () => {
-    setPortions((prev) => (prev < 20 ? prev + 1 : prev));
-  };
-
-  const baseIngredients = [
-    { emoji: '🥬', name: 'Lechuga', quantity: 100, unit: 'g' },
-    { emoji: '🍅', name: 'Tomate', quantity: 1, unit: 'unidad' },
-    { emoji: '🍗', name: 'Pollo', quantity: 150, unit: 'g' },
-    { emoji: '🥚', name: 'Huevo', quantity: 2, unit: 'unidades' },
-    { emoji: '🥑', name: 'Palta', quantity: 1, unit: 'unidad' },
-  ];
+  const decreasePortion = () => setPortions((prev) => (prev > 1 ? prev - 1 : prev));
+  const increasePortion = () => setPortions((prev) => (prev < 20 ? prev + 1 : prev));
 
   return (
     <ScrollView style={styles.container}>
+      {/* HEADER */}
       <View style={styles.headerBox}>
-        <Text style={styles.title}>{dish?.name || "Pastel de Choclo"}</Text>
+        <Text style={styles.title}>{dish.name}</Text>
         <MaterialCommunityIcons name="silverware-fork-knife" size={40} color="#0071CE" />
       </View>
 
+      {/* IMAGEN */}
       <View style={styles.imageBox}>
         <Image
-          source={dish?.image}
-          style={{ width: '100%', height: 180, borderRadius: 12}}
+          source={dish.image}
+          style={{ width: '100%', height: 180, borderRadius: 12 }}
           resizeMode="cover"
         />
       </View>
 
-      {/* Datos nutricionales */}
+      {/* DATOS NUTRICIONALES */}
       <View style={styles.statsCard}>
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <MaterialCommunityIcons name="food-variant" size={24} color="#0071CE" />
             <Text style={styles.statLabel}>Ingredientes</Text>
-            <Text style={styles.statValue}>6</Text>
+            <Text style={styles.statValue}>{dish.ingredients.length}</Text>
           </View>
           <View style={styles.statItem}>
             <MaterialCommunityIcons name="speedometer-slow" size={24} color="#0071CE" />
             <Text style={styles.statLabel}>Dificultad</Text>
-            <Text style={styles.statValue}>Baja</Text>
+            <Text style={styles.statValue}>{dish.difficulty}</Text>
           </View>
           <View style={styles.statItem}>
             <MaterialCommunityIcons name="clock-time-three-outline" size={24} color="#0071CE" />
             <Text style={styles.statLabel}>Tiempo</Text>
-            <Text style={styles.statValue}>15'</Text>
+            <Text style={styles.statValue}>{dish.time}</Text>
           </View>
         </View>
 
@@ -64,22 +56,22 @@ export default function InfoScreen({ route, navigation }) {
           <View style={styles.statItem}>
             <MaterialCommunityIcons name="arm-flex-outline" size={24} color="#0071CE" />
             <Text style={styles.statLabel}>Proteínas</Text>
-            <Text style={styles.statValue}>24g</Text>
+            <Text style={styles.statValue}>{dish.proteins}</Text>
           </View>
           <View style={styles.statItem}>
             <MaterialCommunityIcons name="lightning-bolt-outline" size={24} color="#0071CE" />
             <Text style={styles.statLabel}>Calorías</Text>
-            <Text style={styles.statValue}>89</Text>
+            <Text style={styles.statValue}>{dish.calories}</Text>
           </View>
           <View style={styles.statItem}>
             <MaterialCommunityIcons name="cash" size={24} color="#0071CE" />
             <Text style={styles.statLabel}>Precio</Text>
-            <Text style={styles.statValue}>$7.800</Text>
+            <Text style={styles.statValue}>${dish.price.toLocaleString()}</Text>
           </View>
         </View>
       </View>
 
-      {/* Tabs */}
+      {/* TABS */}
       <View style={styles.tabs}>
         <TouchableOpacity
           style={[styles.tab, activeTab === "ingredientes" && styles.activeTab]}
@@ -100,7 +92,7 @@ export default function InfoScreen({ route, navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Contenido de pestañas */}
+      {/* CONTENIDO SEGÚN TAB */}
       {activeTab === "ingredientes" ? (
         <>
           <View style={styles.portionRow}>
@@ -115,9 +107,11 @@ export default function InfoScreen({ route, navigation }) {
             </TouchableOpacity>
           </View>
 
-          {baseIngredients.map((item, index) => (
+          {dish.ingredients.map((item, index) => (
             <View key={index} style={styles.ingredientCard}>
-              <Text style={styles.ingredientText}>{item.emoji} {item.name}</Text>
+              <Text style={styles.ingredientText}>
+                {item.emoji} {item.name}
+              </Text>
               <Text style={styles.ingredientQty}>
                 {item.quantity * portions} {item.unit}
               </Text>
@@ -126,7 +120,7 @@ export default function InfoScreen({ route, navigation }) {
         </>
       ) : (
         <>
-          {["Lavar los ingredientes", "Cortar la lechuga y el tomate", "Cocinar el pollo y los huevos", "Mezclar todo y agregar palta"].map((step, i) => (
+          {dish.steps.map((step, i) => (
             <View key={i} style={styles.stepCard}>
               <Text style={styles.stepText}>{i + 1}. {step}</Text>
             </View>
@@ -134,13 +128,13 @@ export default function InfoScreen({ route, navigation }) {
         </>
       )}
 
-      {/* Botón agregar */}
+      {/* BOTÓN AGREGAR */}
       <TouchableOpacity
         style={styles.addButton}
         onPress={async () => {
           try {
-            await saveMeal(day, meal, dish);      // guarda en AsyncStorage
-            navigation.navigate('Calendario Semanal', {screen: 'CalendarScreen',}); // vuelve al calendario correcto
+            await saveMeal(day, meal, dish);
+            navigation.navigate('Calendario Semanal', { screen: 'CalendarScreen' });
           } catch (e) {
             console.warn('No se pudo guardar el platillo:', e);
           }
@@ -153,11 +147,7 @@ export default function InfoScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#f8f9fa',
-    flex: 1,
-    padding: 15,
-  },
+  container: { backgroundColor: '#f8f9fa', flex: 1, padding: 15 },
   headerBox: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -171,11 +161,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     marginBottom: 10,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
-  },
+  title: { fontSize: 20, fontWeight: '700', color: '#333' },
   imageBox: {
     backgroundColor: '#fff',
     alignItems: 'center',
@@ -194,22 +180,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     elevation: 2,
   },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 10,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statLabel: {
-    color: '#444',
-    fontSize: 13,
-  },
-  statValue: {
-    color: '#0071CE',
-    fontWeight: '700',
-  },
+  statsRow: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 10 },
+  statItem: { alignItems: 'center' },
+  statLabel: { color: '#444', fontSize: 13 },
+  statValue: { color: '#0071CE', fontWeight: '700' },
   tabs: {
     flexDirection: 'row',
     borderRadius: 10,
@@ -217,44 +191,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 10,
   },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  activeTab: {
-    backgroundColor: '#0071CE',
-  },
-  tabText: {
-    color: '#333',
-    fontWeight: '500',
-  },
-  activeTabText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  portionRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 15,
-  },
-  portionButton: {
-    backgroundColor: '#0071CE',
-    borderRadius: 8,
-    padding: 8,
-    marginHorizontal: 10,
-  },
-  portionSymbol: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  portionLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-  },
+  tab: { flex: 1, alignItems: 'center', paddingVertical: 12 },
+  activeTab: { backgroundColor: '#0071CE' },
+  tabText: { color: '#333', fontWeight: '500' },
+  activeTabText: { color: '#fff', fontWeight: '600' },
+  portionRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginVertical: 15 },
+  portionButton: { backgroundColor: '#0071CE', borderRadius: 8, padding: 8, marginHorizontal: 10 },
+  portionSymbol: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+  portionLabel: { fontSize: 16, fontWeight: '500', color: '#333' },
   ingredientCard: {
     backgroundColor: '#fff',
     borderRadius: 10,
@@ -263,35 +207,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  ingredientText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  ingredientQty: {
-    color: '#0071CE',
-    fontWeight: '600',
-  },
-  stepCard: {
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-  stepText: {
-    color: '#333',
-    fontSize: 15,
-  },
-  addButton: {
-    backgroundColor: '#0071CE',
-    padding: 15,
-    borderRadius: 12,
-    marginTop: 20,
-    marginBottom: 30,
-  },
-  addButtonText: {
-    color: '#FFD200',
-    fontSize: 17,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
+  ingredientText: { fontSize: 16, color: '#333' },
+  ingredientQty: { color: '#0071CE', fontWeight: '600' },
+  stepCard: { backgroundColor: '#fff', padding: 15, borderRadius: 10, marginBottom: 10 },
+  stepText: { color: '#333', fontSize: 15 },
+  addButton: { backgroundColor: '#0071CE', padding: 15, borderRadius: 12, marginTop: 20, marginBottom: 30 },
+  addButtonText: { color: '#FFD200', fontSize: 17, fontWeight: '600', textAlign: 'center' },
 });
