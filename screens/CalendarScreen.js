@@ -31,7 +31,6 @@ export default function CalendarScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <Text style={styles.title}>Calendario Semanal</Text>
 
         <View style={styles.dayHeader}>
           <TouchableOpacity onPress={() => setCurrentDayIndex((prev) => (prev > 0 ? prev - 1 : days.length - 1))}>

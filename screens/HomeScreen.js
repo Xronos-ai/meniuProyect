@@ -38,7 +38,7 @@ export default function HomeScreen({ navigation }) {
           style={styles.button}
           // Importante: cambiar de Tab usando el nombre REAL del Tab.
           // Usamos el padre (TabNavigator) para evitar ambigüedad.
-          onPress={() => navigation.getParent()?.navigate('Calendario Semanal')}
+          onPress={() => navigation.navigate('Calendario Semanal', {screen: 'CalendarScreen',})}
         >
           <Text style={styles.buttonText}>Ver calendario</Text>
         </TouchableOpacity>

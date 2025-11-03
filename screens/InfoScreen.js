@@ -140,7 +140,7 @@ export default function InfoScreen({ route, navigation }) {
         onPress={async () => {
           try {
             await saveMeal(day, meal, dish);      // guarda en AsyncStorage
-            navigation.navigate('CalendarScreen'); // vuelve al calendario correcto
+            navigation.navigate('Calendario Semanal', {screen: 'CalendarScreen',}); // vuelve al calendario correcto
           } catch (e) {
             console.warn('No se pudo guardar el platillo:', e);
           }
