@@ -6,7 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { getPlan, normalizeDayLabel } from '../utils/planStorage';
 
 export default function CalendarScreen({ navigation }) {
-  const days = ['Lunes 😫','Martes 😐','Miércoles ☺️','Jueves 😄','Viernes 🤩','Sábado 🤪','Domingo 😔'];
+  const days = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
   const [currentDayIndex, setCurrentDayIndex] = useState(0);
   const [plan, setPlan] = useState({});
   const [todayText, setTodayText] = useState('');
